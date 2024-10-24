@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:floating_overlay/floating_overlay.dart';
+import 'package:floating_windows/floating_windows.dart';
 
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
 void main() {
   runApp(const App());
@@ -16,7 +17,7 @@ class App extends StatelessWidget {
     // all new pages on top and show again when you come back
     final routeObserver = RouteObserver();
     return MaterialApp(
-      title: 'Floating Overlay Example',
+      title: 'Floating Windows Example',
       navigatorObservers: [routeObserver], // Give it to the main materialApp
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -37,16 +38,31 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = FloatingOverlayController.absoluteSize(
-      maxSize: const Size(200, 200),
-      minSize: const Size(100, 100),
+    final controller1 = FloatingOverlayController.absoluteSize(
+      maxSize: const Size(800, 800),
+      minSize: const Size(400, 300),
+      start: Offset.zero,
+      padding: const EdgeInsets.all(20.0),
+      constrained: true,
+    );
+    final controller2 = FloatingOverlayController.absoluteSize(
+      maxSize: const Size(800, 800),
+      minSize: const Size(400, 300),
+      start: const Offset(100, 100),
+      padding: const EdgeInsets.all(20.0),
+      constrained: true,
+    );
+    final controller3 = FloatingOverlayController.absoluteSize(
+      maxSize: const Size(800, 800),
+      minSize: const Size(300, 500),
+      start: const Offset(300, 300),
       padding: const EdgeInsets.all(20.0),
       constrained: true,
     );
     final routeObserver = Provider.of<RouteObserver>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Floating Overlay Example'),
+        title: const Text('Floating Windows Example'),
         centerTitle: true,
       ),
       body: FloatingOverlay(
@@ -54,27 +70,68 @@ class HomePage extends StatelessWidget {
         // make so that when you push pages on top of this one, the floating
         // child will vanish and reappear when you return.
         routeObserver: routeObserver,
-        controller: controller,
-        floatingChild: SizedBox.square(
-          dimension: 100.0,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              border: Border.all(
-                color: Colors.black,
-                width: 5.0,
+        controllers: [controller1, controller2, controller3],
+        floatingChildren: [
+          SizedBox(
+            width: 400,
+            height: 300,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                border: Border.all(
+                  color: Colors.black,
+                  width: 5.0,
+                ),
               ),
             ),
           ),
-        ),
+          SizedBox(
+            width: 400,
+            height: 300,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.amber,
+                border: Border.all(
+                  color: Colors.black,
+                  width: 5.0,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 300,
+            height: 500,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0),
+                border: Border.all(
+                  color: Colors.black,
+                  width: 5.0,
+                ),
+              ),
+            ),
+          ),
+        ],
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomButton(
-                title: 'Toggle Overlay',
+                title: 'Toggle Overlay 1',
                 onPressed: () {
-                  controller.toggle();
+                  controller1.toggle();
+                },
+              ),
+              CustomButton(
+                title: 'Toggle Overlay 2',
+                onPressed: () {
+                  controller2.toggle();
+                },
+              ),
+              CustomButton(
+                title: 'Toggle Overlay 3',
+                onPressed: () {
+                  controller3.toggle();
                 },
               ),
               CustomButton(
@@ -85,13 +142,13 @@ class HomePage extends StatelessWidget {
                     Offset.zero,
                     Offset(size.width, size.height),
                   );
-                  controller.offset = rect.center;
+                  controller1.offset = rect.center;
                 },
               ),
               CustomButton(
                 title: 'Set Scale to 2.0',
                 onPressed: () {
-                  controller.scale = 2.0;
+                  controller1.scale = 2.0;
                 },
               ),
               CustomButton(
@@ -166,8 +223,7 @@ class AnimationPage extends StatefulWidget {
   _AnimationPageState createState() => _AnimationPageState();
 }
 
-class _AnimationPageState extends State<AnimationPage>
-    with SingleTickerProviderStateMixin {
+class _AnimationPageState extends State<AnimationPage> with SingleTickerProviderStateMixin {
   late final AnimationController animationController;
   late final FloatingOverlayController controller;
 
@@ -201,19 +257,21 @@ class _AnimationPageState extends State<AnimationPage>
         // make so that when you push pages on top of this one, the floating
         // child will vanish and reappear when you return.
         routeObserver: Provider.of<RouteObserver>(context, listen: false),
-        controller: controller,
-        floatingChild: SizedBox.square(
-          dimension: 100.0,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              border: Border.all(
-                color: Colors.black,
-                width: 5.0,
+        controllers: [controller],
+        floatingChildren: [
+          SizedBox.square(
+            dimension: 100.0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                border: Border.all(
+                  color: Colors.black,
+                  width: 5.0,
+                ),
               ),
             ),
           ),
-        ),
+        ],
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

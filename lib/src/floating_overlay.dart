@@ -22,25 +22,29 @@ class FloatingOverlay extends StatefulWidget {
     this.child,
 
     /// Used to controll the visibility state of the [floatingChild].
-    this.controller,
+    this.controllers,
 
     /// Widget that will be floating around.
-    this.floatingChild,
+    this.floatingChildren,
 
     /// When you push pages on top, the floating child will vanish and reappear
     /// when you return if you give it an RouteObserver linked to the main
     /// MaterialApp.
     this.routeObserver,
-  }) : super(key: key);
+  })  : assert(
+          controllers == null || floatingChildren == null || controllers.length == floatingChildren.length,
+          'The length of controllers and floatingChildren must be the same.',
+        ),
+        super(key: key);
 
   /// The child underneath this widget inside the widget tree.
   final Widget? child;
 
   /// Widget that will be floating around.
-  final Widget? floatingChild;
+  final List<Widget>? floatingChildren;
 
   /// Used to controll the visibility state of the [floatingChild].
-  final FloatingOverlayController? controller;
+  final List<FloatingOverlayController>? controllers;
 
   /// When you push pages on top, the floating child will vanish and reappear
   /// when you return if you give it an RouteObserver linked to the main
@@ -54,17 +58,17 @@ class FloatingOverlay extends StatefulWidget {
 class _FloatingOverlayState extends State<FloatingOverlay> with RouteAware {
   static const empty = SizedBox.shrink();
 
-  late final FloatingOverlayController controller;
   final key = GlobalKey();
   final floatingWidgetKey = GlobalKey();
   bool floating = false;
 
-  void startController(BuildContext context, BoxConstraints constraints) {
+  void startControllers(BuildContext context, BoxConstraints constraints) {
     final offset = widgetOffset();
     final _endOffset = endOffset(offset, constraints.biggest);
     final limits = Rect.fromPoints(offset, _endOffset);
-    final child = widget.floatingChild ?? empty;
-    controller._initState(context, child, limits);
+    for (int i = 0; i < widget.controllers!.length; i++) {
+      widget.controllers![i]._initState(context, widget.floatingChildren![i], limits);
+    }
   }
 
   Offset widgetOffset() {
@@ -79,7 +83,6 @@ class _FloatingOverlayState extends State<FloatingOverlay> with RouteAware {
 
   @override
   void initState() {
-    controller = widget.controller ?? FloatingOverlayController.relativeSize();
     super.initState();
   }
 
@@ -91,23 +94,28 @@ class _FloatingOverlayState extends State<FloatingOverlay> with RouteAware {
 
   @override
   void didPopNext() {
-    if (floating) {
-      controller.show();
+    for (int i = 0; i < widget.controllers!.length; i++) {
+      if (widget.controllers![i].isFloating) {
+        widget.controllers![i].show();
+      }
     }
   }
 
   @override
   void didPushNext() {
-    floating = controller.isFloating;
-    if (floating) {
-      controller.hide();
+    for (int i = 0; i < widget.controllers!.length; i++) {
+      if (widget.controllers![i].isFloating) {
+        widget.controllers![i].hide();
+      }
     }
   }
 
   @override
   void dispose() {
     widget.routeObserver?.unsubscribe(this);
-    controller._dispose();
+    for (final controller in widget.controllers!) {
+      controller._dispose();
+    }
     super.dispose();
   }
 
@@ -119,7 +127,7 @@ class _FloatingOverlayState extends State<FloatingOverlay> with RouteAware {
           key: key,
           builder: (context, constraints) {
             WidgetsBinding.instance.addPostFrameCallback(
-              (_) => startController(context, constraints),
+              (_) => startControllers(context, constraints),
             );
             return widget.child ?? empty;
           },

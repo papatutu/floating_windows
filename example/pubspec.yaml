@@ -1,5 +1,5 @@
 name: example
-description: An example for the floating_overlay package.
+description: An example for the floating_windows package.
 
 publish_to: none
 
@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  floating_overlay: 
+  floating_windows: 
     path: ../
   provider: any
   

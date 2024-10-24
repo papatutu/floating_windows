@@ -230,6 +230,11 @@ class FloatingOverlayController extends Cubit<FloatingOverlayData> {
     _overlay?.insert(_entry!);
   }
 
+  void ensureVisible() {
+    hide();
+    show();
+  }
+
   Widget get _entryProcesWidgets {
     return _Reposition(
       offsetController: _offset,
@@ -306,6 +311,7 @@ class FloatingOverlayController extends Cubit<FloatingOverlayData> {
       },
       onScaleEnd: (_) {
         _offset.onEnd();
+        ensureVisible();
       },
       child: _floatingChild,
     );
